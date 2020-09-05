@@ -1,0 +1,6 @@
+[submodule "cocoapi"]
+	path = cocoapi
+	url = https://github.com/tjiagoM/cocoapi
+[submodule "pdq_evaluation"]
+	path = pdq_evaluation
+	url = https://github.com/tjiagoM/pdq_evaluation
