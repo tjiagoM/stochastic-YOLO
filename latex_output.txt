@@ -1,0 +1,20 @@
+\begin{table*}[h!]
+\centering
+\caption{Overall results across different results, where Lbl and Sp mean average label and spatial uncertainty quality, respectively. In parenthesis confidence threshold. S-YOLO indicates Stochastic-YOLO in which the corresponding number is the dropout percentage applied, and -X means fine-tuned model}
+\label{tab:model_results}
+\begin{tabularx}{\textwidth}{l|XX|XX|XX|XX}
+ & \textbf{mAP (\%)} & \textbf{$\textrm{rPC}_{mAP}$ (\%)} & \textbf{PDQ (\%)} & \textbf{$\textrm{rPC}_{PDQ}$ (\%)} & \textbf{Lbl (\%)} & \textbf{$\textrm{rPC}_{Lbl}$ (\%)} & \textbf{Sp (\%)} & \textbf{$\textrm{rPC}_{Sp}$ (\%)}\\
+YOLOv3 (0.1) & 34.43 & 20.64 & 7.19 & 4.88 & 55.27 & 48.38 & 14.53 & 12.18 \\
+YOLOv3 (0.5) & 26.07 & 14.64 & 9.26 & 5.4 & 72.88 & 69.7 & 18.42 & 16.11 \\ \hline
+Ensemble (0.1) & 37.14 & 22.28 & 18.36 & 13.38 & 50.66 & 43.25 & 39.24 & 37.66 \\
+Ensemble (0.5) & 26.0 & 14.07 & 19.53 & 11.5 & 72.21 & 69.63 & 49.21 & 48.59 \\ \hline
+S-YOLO-25 (0.1) & 31.67 & 19.31 & 17.73 & 13.4 & 48.18 & 41.67 & 37.27 & 34.84 \\
+S-YOLO-25 (0.5) & 22.72 & 12.91 & 20.27 & 12.46 & 70.17 & 67.7 & 45.78 & 44.95 \\ \hline
+S-YOLO-25-X (0.1) & 33.16 & 19.66 & 17.29 & 11.95 & 51.01 & 44.62 & 38.59 & 34.58 \\
+S-YOLO-25-X (0.5) & 24.2 & 13.58 & 19.08 & 11.39 & 70.99 & 68.09 & 48.76 & 45.58 \\ \hline
+S-YOLO-75 (0.1) & 17.36 & 11.11 & 4.44 & 4.2 & 29.88 & 24.79 & 19.71 & 17.79 \\
+S-YOLO-75 (0.5) & 7.47 & 4.36 & 7.81 & 5.09 & 61.32 & 60.71 & 25.88 & 26.61 \\ \hline
+S-YOLO-75-X (0.1) & 29.36 & 17.63 & 17.86 & 12.57 & 42.94 & 38.68 & 39.36 & 36.82 \\
+S-YOLO-75-X (0.5) & 17.76 & 10.11 & 15.2 & 9.51 & 66.34 & 64.41 & 52.27 & 49.97 \\
+\end{tabularx}
+\end{table*}
