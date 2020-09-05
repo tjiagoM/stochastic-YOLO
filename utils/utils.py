@@ -1324,13 +1324,40 @@ def calculate_rPC_metric(metric_i, model_name, params_name):
 
     return rPC, p_clean
 
+
+def generate_core_latex_table(metrics, caption_text, models_params, label_text):
+    metric_name = {'mAP': 'mAP', 'PDQ' : 'PDQ', 'avg_label' : 'Lbl', 'avg_spatial' : 'Sp'}
+
+    print('\\begin{table*}[h!]')
+    print('\\centering')
+    print(caption_text)
+    print(label_text)
+    print('\\begin{tabularx}{\\textwidth}{l' + ''.join(['|XX' for _ in metrics]) + '}')
+
+    latex_cols = []
+    for metric_i in metrics:
+        latex_cols.append('\\textbf{' + metric_name[metric_i] + ' (\%)}')
+        latex_cols.append('\\textbf{' + '$\\textrm{rPC}_{' + metric_name[metric_i] + '}$ (\%)}')
+    print(' & ' + ' & '.join(latex_cols) + '\\\\')
+
+    for model_name, param_name, printed_name, line_ending in models_params:
+        output_line = [printed_name]
+        for metric_i in metrics:
+            rPC, p_clean = calculate_rPC_metric(metric_i, model_name, param_name)
+            output_line.append(str(round(p_clean * 100, 2)))
+            output_line.append(str(round(rPC * 100, 2)))
+        print(' & '.join(output_line) + ' ' + line_ending)
+    print('\\end{tabularx}')
+    print('\\end{table*}')
+
+
 def generate_latex_table(metrics):
     models_params = [
         ('coco_baseline', '0_1_0_6', 'YOLOv3 (0.1)', '\\\\'),
         ('coco_baseline', '0_5_0_6', 'YOLOv3 (0.5)', '\\\\ \\hline'),
         
-        ('coco_ensemble_5', '0_1_0_6', 'Ensemble (0.1)', '\\\\'),
-        ('coco_ensemble_5', '0_5_0_6', 'Ensemble (0.5)', '\\\\ \\hline'),
+        ('coco_ensemble_5', '0_1_0_6', 'Ensemble-5 (0.1)', '\\\\'),
+        ('coco_ensemble_5', '0_5_0_6', 'Ensemble-5 (0.5)', '\\\\ \\hline'),
 
         ('coco_mcdrop25_10_no_retrain', '0_1_0_6', 'S-YOLO-25 (0.1)', '\\\\'),
         ('coco_mcdrop25_10_no_retrain', '0_5_0_6', 'S-YOLO-25 (0.5)', '\\\\ \\hline'),
@@ -1347,30 +1374,35 @@ def generate_latex_table(metrics):
     ]
 
     caption_text = '\\caption{Overall results across different results, where Lbl and Sp mean average label and spatial uncertainty quality, respectively. In parenthesis confidence threshold. S-YOLO indicates Stochastic-YOLO in which the corresponding number is the dropout percentage applied, and -X means fine-tuned model}'
+    label_text = '\\label{tab:model_results}'
 
-    metric_name = {'mAP': 'mAP', 'PDQ' : 'PDQ', 'avg_label' : 'Lbl', 'avg_spatial' : 'Sp'}
+    generate_core_latex_table(metrics=metrics, caption_text=caption_text, models_params=models_params, label_text=label_text)
 
-    print('\\begin{table*}[h!]')
-    print('\\centering')
-    print(caption_text)
-    print('\\label{tab:model_results}')
-    print('\\begin{tabularx}{\\textwidth}{l' + ''.join(['|XX' for _ in metrics]) + '}')
 
-    latex_cols = []
-    for metric_i in metrics:
-        latex_cols.append('\\textbf{' + metric_name[metric_i] + ' (\%)}')
-        latex_cols.append('\\textbf{' + '$\\textrm{rPC}_{' + metric_name[metric_i] + '}$ (\%)}')
-    print(' & ' + ' & '.join(latex_cols) + '\\\\') 
+def generate_suppl_latex_table(metrics):
+    models_params = [
+        ('coco_baseline', '0_1_0_6', 'YOLOv3 (0.1)', '\\\\'),
+        ('coco_baseline', '0_5_0_6', 'YOLOv3 (0.5)', '\\\\ \\hline'),
 
-    for model_name, param_name, printed_name, line_ending in models_params:
-        output_line = [printed_name]
-        for metric_i in metrics:
-            rPC, p_clean = calculate_rPC_metric(metric_i, model_name, param_name)
-            output_line.append(str(round(p_clean * 100, 2)))
-            output_line.append(str(round(rPC * 100, 2)))
-        print(' & '.join(output_line) + ' ' + line_ending)   
-    print('\\end{tabularx}')
-    print('\\end{table*}')
+        ('coco_ensemble_5', '0_1_0_6', 'Ensemble-5 (0.1)', '\\\\'),
+        ('coco_ensemble_5', '0_5_0_6', 'Ensemble-5 (0.5)', '\\\\ \\hline')
+    ]
+
+    for drop_perc in ['01', '05', '10', '15', '20', '25', '50', '75']:
+        if drop_perc not in ['25', '50', '75']:
+            models_params.append((f'coco_mcdrop{drop_perc}_10_no_retrain', '0_5_0_6', f'S-YOLO-{drop_perc} (0.5)', '\\\\ \\hline'))
+        else:
+            models_params.append((f'coco_mcdrop{drop_perc}_10_no_retrain', '0_1_0_6', f'S-YOLO-{drop_perc} (0.1)', '\\\\'))
+            models_params.append((f'coco_mcdrop{drop_perc}_10_no_retrain', '0_5_0_6', f'S-YOLO-{drop_perc} (0.5)', '\\\\'))
+
+            models_params.append((f'coco_mcdrop{drop_perc}_10', '0_1_0_6', f'S-YOLO-{drop_perc}-X (0.1)', '\\\\'))
+            models_params.append((f'coco_mcdrop{drop_perc}_10', '0_5_0_6', f'S-YOLO-{drop_perc}-X (0.5)', '\\\\  \\hline'))
+
+    caption_text = '\\caption{Overall results across all evaluated cases, where Lbl and Sp mean average label and spatial uncertainty quality, respectively. In parenthesis confidence threshold. S-YOLO indicates Stochastic-YOLO in which the corresponding number is the dropout percentage applied, and -X means fine-tuned model}'
+
+    label_text = '\\label{stab:all_results}'
+
+    generate_core_latex_table(metrics=metrics, caption_text=caption_text, models_params=models_params, label_text=label_text)
 
 
 def plot_single_averaged_metric(model_names, label_matches, metric_i, metric_name, save_path, params_name, cmap):

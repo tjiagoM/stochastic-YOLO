@@ -1,4 +1,4 @@
-# Probabilistic OD
+# Stochastic-YOLO
 
 ## Repository preliminaries
 
@@ -229,6 +229,8 @@ $ python -c "from utils import utils; utils.generate_paper_plots()"
 ### LaTeX outputs
 
 python -c "from utils import utils; utils.generate_latex_table(['mAP', 'PDQ', 'avg_label', 'avg_spatial'])" | tee latex_output.txt
+
+python -c "from utils import utils; utils.generate_suppl_latex_table(['mAP', 'PDQ', 'avg_label', 'avg_spatial'])" | tee latex_suppl_output.txt
 
 
 ### Getting Unknowns
