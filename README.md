@@ -1,4 +1,12 @@
+![license](https://img.shields.io/badge/license-Apache%202.0-blue)
+[![arXiv](https://img.shields.io/badge/arXiv-0000.00000-b31b1b.svg)](https://arxiv.org/abs/0000.00000)
 # Stochastic-YOLO
+*Tiago Azevedo, René de Jong, Partha Maji*
+
+This repository contains all the code necessary to run and further extend the experiments presented in the following ArXiv preprint: [https://arxiv.org/abs/0000.00000](https://arxiv.org/abs/0000.00000)
+
+## Abstract
+
 
 ## Repository preliminaries
 
@@ -6,24 +14,24 @@ This repository was originally forked from https://github.com/ultralytics/yolov3
 
 ### External packages
 
-For this repo it was decided to not install pycocotools for a better (and tracked) flexibility when editing some classes. Folder `cocoapi` is then a fork from the original [repository](https://github.com/cocodataset/cocoapi), installed locally in the form of a git submodule. To import it, it is only necessary to include the folder in the system path:
+For this repo it was decided to not install pycocotools in the python environment for a better (and tracked) flexibility when editing some classes. Folder `cocoapi` is then a fork from the original [repository](https://github.com/cocodataset/cocoapi), installed locally in the form of a git submodule. To import it, it is only necessary to include the folder in the system path whenever needed:
 
 ```python
 import sys
 sys.path.append('./cocoapi/PythonAPI/')
 ```
 
-We also forked an external repository for calculation of the PDQ score, but included as submodule in this repo for flexibility. Instructions there: https://github.com/david2611/pdq_evaluation (originally for the Robotic Vision Challenge 1 and adapted for COCO dataset).
+We also forked an [external repository](https://github.com/david2611/pdq_evaluation) for calculation of the PDQ score, but included as submodule in this repo for flexibility. Instructions there: https://github.com/tjiagoM/pdq_evaluation (originally for the Robotic Vision Challenge 1 and adapted for COCO dataset).
 
 ### Repository structure
 
 This repository follows the structure of the original repository, with some changes:
 
- * `cgf`: Where all the (Darknet) configuration files, all from the original repository. For this repository in specific, `yolov3-custom.cfg` and `yolov3-mcdropout.cfg` are the ones added.
+ * `cgf`: Where all the (Darknet) configuration files, all from the original repository. For this repository in specific, `yolov3-custom.cfg` and `yolov3-mcdropXX.cfg` are the ones added.
  * `cocoapi` and `pdq_evaluation`: git submodules with the external packages as defined in previous section
- * `data`: configuration files for information about the data used in the scripts. For this repository, we are mostly using `coco2017.data` for the COCO 2017 dataset. We included an extra key named `instances_path` which is not present in the `.data` files from the original repository. This allowed for the use of both COCO 2014 and 2017 in the same project.
+ * `data`: configuration files for information about the data used in the different scripts. For this repository, we are mostly using `coco2017.data` for the COCO 2017 dataset. We included an extra key named `instances_path` which is not present in the `.data` files from the original Ultalytics' repository.
  * `output`: Mostly temporary output files from different runs.
- * `results`: The CSVs with the metrics calculated from `pdq_evaluation/evaluate.py`. Decision of having one CSV in separate for each model and corruption/severity due to flexibility in calling parallel evaluation scripts.
+ * `results`: The CSVs with the metrics calculated from `pdq_evaluation/evaluate.py`. Decision of having one CSV in separate for each model and corruption/severity was due to flexibility in calling parallel evaluation scripts.
  * `scripts`: some bash scripts to run over the terminal for several python tasks
  * `weights`: Folder with trained models
 
@@ -38,11 +46,7 @@ To train from scratch yolov3, with image size input of 416x416 (defined in yolov
 python train.py --data data/coco2017.data --epochs 100 --batch-size 20 --name coco2017_scratch --weights '' --cfg cfg/yolov3-custom.cfg --img-size 416
 ```
 
-After these 100 epochs, and given we passed a `--name` flag, there will be a file in the root repository with the evolution of the training metrics named `results_coco2017_scratch.txt`. We can plot training evolution with `python -c "from utils import utils; utils.plot_results(name_to_plot='coco2017_scratch')"`:
-
-![coco2017 training](output/results_coco2017_scratch.png "COCO 2017 training")
-
-These plots don't seem to agree with the metrics calculated at inference time (eg. mAP and F1 are much lower in the training plots, even though supposedly the same testing script is used both in train/test times).
+After these 100 epochs, and given we passed a `--name` flag, there will be a file in the root repository with the evolution of the training metrics named `results_coco2017_scratch.txt`. 
 
 We further trained the model for another 100 epochs:
 ```bash
@@ -52,41 +56,12 @@ python train.py --data data/coco2017.data --epochs 200 --batch-size 20 --name co
 
 ### Evaluating previous model
 
-**With confidence threshold of 0.001 and IoU threshold of 0.6 for NMS:**
-
-```bash
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.001 --iou-thres=0.6 --name coco2017_scratch_round2
-```
-
-The previous command will generate a json file in `output/dets_coco2017_scratch_round2_0.001_0.6.json` in a format that can be used by the official MC COCO Evaluation API (in `cocoapi/`). The evaluation metrics are:
-
-```
-Class    Images   Targets         P         R   mAP@0.5        F1
-  all     5e+03  3.63e+04     0.499     0.601     0.546     0.542
-```
-
-```
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.366
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.554
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.391
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.175
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.409
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.529
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.299
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.479
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.518
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.300
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.577
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.681
-```
-
 **With confidence threshold of 0.1 and IoU threshold of 0.6 for NMS:**
 
 ```bash
 python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.1 --iou-thres=0.6 --name coco2017_scratch_round2
 ```
-
-The json file created this time will be `output/dets_coco2017_scratch_0.1_0.6.json` instead, with the following metrics:
+The previous command will generate a json file in `output/dets_coco2017_scratch_round2_0.1_0.6.json` in a format that can be used by the official MC COCO Evaluation API (in `cocoapi/`). Some of the evaluation metrics in the terminal output are:
 
 ```
 Class    Images   Targets         P         R   mAP@0.5        F1
@@ -109,52 +84,15 @@ Class    Images   Targets         P         R   mAP@0.5        F1
 ```
 
 
-### Further evaluations (PDQ and LRP)
+### Further evaluations (PDQ and others)
 
-As explained in `pdq_evaluation/`, it is necessary to first convert the json from results to another json format; however, this is done automatically inside `test.py`, in which the corresponding json will have a `_converted` in the name (more details below).
-
-
-And to evalute (`evaluate.py` script took more than 30 minutes to run in our servers for 0.001 confidence threshold):
-
-```bash
-python -u pdq_evaluation/evaluate.py --test_set 'coco' --gt_loc ../coco/annotations/instances_val2017.json --det_loc output/dets_converted_coco2017_scratch_round2_0.001_0.6.json --save_folder output/ --set_cov 0 --name baseline_0_001__0_6 | tee tmp_output.txt
-```
-
-```
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.366
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.554
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.391
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.175
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.409
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.529
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.299
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.479
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.518
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.300
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.577
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.681
- 
-PDQ: 0.008719
-mAP: 0.365565
-avg_pPDQ:0.153878
-avg_spatial:0.121277
-avg_label:0.403718
-avg_foreground:0.544703
-avg_background:0.308979
-TP:29059
-FP:476040
-FN:7722
-moLRP:0.695760
-moLRPLoc:0.167382
-moLRPFP:0.289060
-moLRPFN:0.475230
-```
-
-And for 0.1 confidence threshold, much quicker though:
+As explained in `pdq_evaluation/`, it is necessary to first convert the json from results to another json format; however, this is done automatically inside `test.py`, in which the corresponding json will have a `_converted` in the name. To evaluate the model for 0.1 confidence threshold, run the following command:
 
 ```bash
 python -u pdq_evaluation/evaluate.py --test_set 'coco' --gt_loc ../coco/annotations/instances_val2017.json --det_loc output/dets_converted_coco2017_scratch_round2_0.1_0.6.json --save_folder output/ --set_cov 0 --name baseline_0_1__0_6 | tee tmp_output.txt
 ```
+
+With some of the output being:
 
 ```
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.345
@@ -187,27 +125,21 @@ moLRPFP:0.281327
 moLRPFN:0.477503
 ```
 
-### After round 2, with confidence threshold of 0.1
 
-python train.py --data data/coco2017.data --epochs 100 --batch-size 20 --name coco2017_mcdropout --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdropout.cfg --img-size 416 --dropout_ids 82 95 108
+### Fine-tuning
 
-python train.py --data data/coco2017.data --epochs 50 --batch-size 20 --name coco2017_mcdrop25 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --img-size 416 --dropout_ids 80 82 94 96 108 110
-
-
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.1 --iou-thres=0.6 --name coco2017_scratch_round2
-
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.1 --iou-thres=0.6 --name coco2017_scratch
-
-![coco2017 training round2](output/results_coco2017_scratch_round2.png "COCO 2017 training round 2")
-
-
-### How MCDropout was trained, and evaluation was done
-
+To fine-tune Stochastic-YOLO, the following commands were used (for dropout rates 25%, 50%, and 75%):
+```bash
 python train.py --data data/coco2017.data --epochs 50 --batch-size 20 --name coco2017_mcdrop25 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --img-size 416 --dropout_ids 80 82 94 96 108 110
 
 python train.py --data data/coco2017.data --epochs 50 --batch-size 20 --name coco2017_mcdrop50 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop50.cfg --img-size 416 --dropout_ids 80 82 94 96 108 110
 
 python train.py --data data/coco2017.data --epochs 50 --batch-size 20 --name coco2017_mcdrop75 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop75.cfg --img-size 416 --dropout_ids 80 82 94 96 108 110
+```
+
+Note the use of the `--dropout_ids` flag. Basically, we are using the best YOLOv3 trained model (`best_coco2017_scratch_round2.pt`) but with a non-matching configuration file (`yolov3-mcdropXX.cfg`). Therefore, this flag will indicate where are the dropout ideas in the `.cfg` file (starting from zero, following Darknet format).
+
+[TODO:] point for all scripts inside scripts/ for full documentation
 
 python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.5 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name coco_mcdrop25_10_no_retrain
 
