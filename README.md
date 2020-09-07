@@ -1,4 +1,4 @@
-![license](https://img.shields.io/badge/license-Apache%202.0-blue)
+[![license](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/tjiagoM/stochastic-YOLO/blob/master/LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-0000.00000-b31b1b.svg)](https://arxiv.org/abs/0000.00000)
 # Stochastic-YOLO
 *Tiago Azevedo, René de Jong, Partha Maji*
@@ -7,6 +7,7 @@ This repository contains all the code necessary to run and further extend the ex
 
 ## Abstract
 
+In image classification tasks, the evaluation of models' robustness to increased dataset shifts with a probabilistic framework is very well studied. However, Object Detection (OD) tasks pose other challenges for uncertainty estimation and evaluation. For example, one needs to evaluate both the quality of the label uncertainty (i.e., *what?*) and spatial uncertainty (i.e., *where?*) for a given bounding box, but that evaluation cannot be performed with more traditional average precision metrics (e.g., mAP). In this paper, we adapt the well-established YOLOv3 architecture to generate uncertainty estimations by introducing stochasticity in the form of Monte Carlo Dropout (MC-Drop), and evaluate it across different levels of dataset shift. We call this novel architecture Stochastic-YOLO, and provide an efficient implementation to effectively reduce the burden of the MC-Drop sampling mechanism at inference time. Finally, we provide some sensitivity analyses, while arguing that Stochastic-YOLO is a sound approach that improves different components of uncertainty estimations, in particular spatial uncertainties.
 
 ## Repository preliminaries
 
@@ -27,31 +28,33 @@ We also forked an [external repository](https://github.com/david2611/pdq_evaluat
 
 This repository follows the structure of the original repository, with some changes:
 
- * `cgf`: Where all the (Darknet) configuration files, all from the original repository. For this repository in specific, `yolov3-custom.cfg` and `yolov3-mcdropXX.cfg` are the ones added.
- * `cocoapi` and `pdq_evaluation`: git submodules with the external packages as defined in previous section
+ * `cgf`: Where all the (Darknet) configuration files are. For this repository in specific, `yolov3-custom.cfg` and `yolov3-mcdropXX.cfg` are the ones added.
+ * `cocoapi` and `pdq_evaluation`: git submodules with the external packages as defined in previous section.
  * `data`: configuration files for information about the data used in the different scripts. For this repository, we are mostly using `coco2017.data` for the COCO 2017 dataset. We included an extra key named `instances_path` which is not present in the `.data` files from the original Ultalytics' repository.
  * `output`: Mostly temporary output files from different runs.
  * `results`: The CSVs with the metrics calculated from `pdq_evaluation/evaluate.py`. Decision of having one CSV in separate for each model and corruption/severity was due to flexibility in calling parallel evaluation scripts.
- * `scripts`: some bash scripts to run over the terminal for several python tasks
- * `weights`: Folder with trained models
+ * `scripts`: some bash scripts to run over the terminal for several python tasks.
+ * `weights`: Folder with trained models.
 
 
 ## Overall commands
 
 ### Training from scratch on COCO 2017
 
-To train from scratch yolov3, with image size input of 416x416 (defined in yolov3-custom.cfg), including scaling of images in the train/test set for 100 epochs:
+To train YOLOv3 from scratch, with image size input of 416x416 (defined in `yolov3-custom.cfg`), including scaling of images in the train set for 100 epochs:
 
 ```bash
 python train.py --data data/coco2017.data --epochs 100 --batch-size 20 --name coco2017_scratch --weights '' --cfg cfg/yolov3-custom.cfg --img-size 416
 ```
 
-After these 100 epochs, and given we passed a `--name` flag, there will be a file in the root repository with the evolution of the training metrics named `results_coco2017_scratch.txt`. 
+After these 100 epochs, and given we passed a `--name` flag, there will be a file in the `output/` folder with the evolution of the training metrics named `results_coco2017_scratch.txt`. 
 
 We further trained the model for another 100 epochs:
 ```bash
 python train.py --data data/coco2017.data --epochs 200 --batch-size 20 --name coco2017_scratch_round2 --weights weights/last_coco2017_scratch.pt --cfg cfg/yolov3-custom.cfg --img-size 416
 ```
+
+The same process was used to train the five different YOLOv3's for the Ensemble. The commands used for that are inside the `scripts/` folder: `train_ensembles.sh` and `train_ensembles_round2.sh`
 
 
 ### Evaluating previous model
@@ -125,6 +128,7 @@ moLRPFP:0.281327
 moLRPFN:0.477503
 ```
 
+The `pdq_evaluation` repository was also changed to create a `.csv` file inside `results/` everytime the previous script is executed. Indeed, as you will see for some of the next instructions, the scripts are run having that underlying assumption.
 
 ### Fine-tuning
 
@@ -137,59 +141,63 @@ python train.py --data data/coco2017.data --epochs 50 --batch-size 20 --name coc
 python train.py --data data/coco2017.data --epochs 50 --batch-size 20 --name coco2017_mcdrop75 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop75.cfg --img-size 416 --dropout_ids 80 82 94 96 108 110
 ```
 
-Note the use of the `--dropout_ids` flag. Basically, we are using the best YOLOv3 trained model (`best_coco2017_scratch_round2.pt`) but with a non-matching configuration file (`yolov3-mcdropXX.cfg`). Therefore, this flag will indicate where are the dropout ideas in the `.cfg` file (starting from zero, following Darknet format).
+Note the use of the `--dropout_ids` flag. Basically, we are using the best YOLOv3 trained model (`best_coco2017_scratch_round2.pt`) but with a non-matching configuration file (`yolov3-mcdropXX.cfg`). Therefore, this flag will indicate where are the dropout ids in the `.cfg` file (starting from zero, following Darknet format).
 
-[TODO:] point for all scripts inside scripts/ for full documentation
+### Evaluations
 
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.5 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name coco_mcdrop25_10_no_retrain
+The previous evaluations were automated for other models in a few scripts inside the `scripts/` folder, whose contents should be self explanatory. The many commands are scattered across different files instead of a single one to make it easy to parallelise these commands across different servers. In any case, if something is not clear please open a new issue in this repository. Some scripts are repeated with just different parameters.
 
+One starting point can be `generate_corruptions_for_higher_drops.sh` where evaluation for Stochastic-YOLO with dropout rates of 50% and 75% are performed across different corruptions and severities, as well as for fine-tuned and non fine-tuned models. One can see the usage of some flags: `--dropout-at_inference` to activate dropout at inference time, `--num_samples` to indicate how many times the model will be sampled from, `--corruption_num` to indicate which corruption number will be used (according to [imagecorruptions package](https://github.com/bethgelab/imagecorruptions)), and `--severity` which is a severity number also described in the [imagecorruptions package](https://github.com/bethgelab/imagecorruptions) (between 1 and 5). `confidence_0_1.sh` and `confidence_0_1_higherdrops.sh` are similar scripts for 0.1 confidence threshold.
 
-### Ensembles part
-bash scripts/ensembles_0_5.sh
+For the sensitivity analysis on dropout rate, the script used was `drop_rates_eval.sh`. Note that for this case, instead of creating extra `.cfg` files, it was used a new flag `--new_drop_rate` so the model's dropout rate would be changed at runtime after loading some model with a different dropout rate.
 
+Although not present in these scripts, to activate the caching mechanism described in the paper, one just has to pass the flag `--with_cached_mcdrop` to `test.py`.
+
+Evaluations for the Ensembles can be achieved with two scripts (one for each confidence threshold):
+
+```bash
+$ bash scripts/ensembles_0_5.sh
+$ bash scripts/ensembles_0_1.sh
+```
 
 ### Plotting results
 
+The following command will plot many metrics across dropout rates and models, with one plot for each corruption (not present in the paper):
 ```bash
 $ bash scripts/plot_corruption_results.sh
 ```
 
+For the plots used in the paper, this is the command:
 ```bash
-$ python -c "from utils import utils; utils.generate_paper_plots()"
+python -c "from utils import utils; utils.generate_paper_plots()"
 ```
 
-### LaTeX outputs
+### LaTeX tables for paper
 
 python -c "from utils import utils; utils.generate_latex_table(['mAP', 'PDQ', 'avg_label', 'avg_spatial'])" | tee latex_output.txt
 
 python -c "from utils import utils; utils.generate_suppl_latex_table(['mAP', 'PDQ', 'avg_label', 'avg_spatial'])" | tee latex_suppl_output.txt
 
 
+
 ### Getting Unknowns
 
+One set of experiments which is not present in the paper, is the analysis of unknowns. If you pass the flag `--get_unknowns` to `test.py` like in the following two examples: 
+
+```bash
 python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.5 --iou-thres=0.6 --name unknown_tests --get_unknowns --batch-size 40
 
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_mcdrop25.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.5 --iou-thres=0.6 --dropout_at_inference --num_samples 10 --name unknown_testsMCD25 --get_unknowns --batch-size 20
-
 python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.5 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name unknown_testsMCD25NO --get_unknowns --batch-size 20
+```
 
+The returning bounding boxes will be instead what we consider to be "unknowns" or, in other words, those bounding boxes in which the model is not entirely sure what object is inside. In practice, this corresponds to filter out bounding boxes where the label scores are all below 0.5 (and above 0.1 just from a practical point of view). In specific, this filtering is done inside `utils.non_max_suppression()`.
 
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.5 --iou-thres=0.6 --name unknown0_1 --get_unknowns --batch-size 40
+We also preliminarly explored an external dataset [TACO](https://github.com/pedropro/TACO) to see how the models would capture unknowns in an OOD dataset. As we didn't want to calculate any metrics for this dataset (only qualitatively see what bounding boxes were being predicted) we created a new flag `--only_inference` that can be passed to `test.py`, to indicate that no metrics need to be calculated. This is necessary to maintain compatibility. These are two examples of how to execute this flag:
 
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.5 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name unknown0_1MCD25NO --get_unknowns --batch-size 20
+```bash
+python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.5 --iou-thres=0.6 --name taco_experiment --batch-size 40 --only_inference
 
+python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.8 --iou-thres=0.6 --name taco_experiment --batch-size 40  --get_unknowns --only_inference
+```
 
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.8 --iou-thres=0.6 --name unknown0_8 --get_unknowns --batch-size 40
-
-python test.py --data data/coco2017.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.8 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name unknown0_8MCD25NO --get_unknowns --batch-size 20
-
-
-python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.5 --iou-thres=0.6 --name taco --batch-size 40 --only_inference
-
-python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-custom.cfg --conf-thres=0.8 --iou-thres=0.6 --name taco --batch-size 40  --get_unknowns --only_inference
-
-python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop25.cfg --conf-thres=0.8 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name tacoMCD25 --get_unknowns --batch-size 40 --only_inference
-
-python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_scratch_round2.pt --cfg cfg/yolov3-mcdrop75.cfg --conf-thres=0.8 --iou-thres=0.6  --dropout_ids 80 82 94 96 108 110 --dropout_at_inference --num_samples 10 --name tacoMCD75 --get_unknowns --batch-size 40 --only_inference
-
-python test.py --data data/taco_batch13.data --img-size 416 --weights weights/best_coco2017_mcdrop75.pt --cfg cfg/yolov3-mcdrop75.cfg --conf-thres=0.8 --iou-thres=0.6 --dropout_at_inference --num_samples 10 --name tacoMCD75-X --get_unknowns --batch-size 40 --only_inference
+Notice that we provide some files inside `data/` for a reduced amount of images from TACO's repository in a format needed by this repository.

@@ -396,7 +396,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_samples', type=int, default=1, help='How many times to sample if doing MC-Dropout')
     parser.add_argument('--corruption_num', type=int, help='which corruption number to use from imagecorruptions')
     parser.add_argument('--severity', type=int, help='which severity to use for the corruption in --corruption_num')
-    parser.add_argument('--get_unknowns', action='store_true', help='get bboxes of unknowns conf_labels < 0.5 and threshold > conf-thres')
+    parser.add_argument('--get_unknowns', action='store_true', help='get bboxes of unknowns conf_labels < 0.5 and threshold > 0.1')
     parser.add_argument('--only_inference', action='store_true', help='to indicate that the info in --data does not have valid ground truths or to not calculate some evaluations')
     parser.add_argument('--new_drop_rate', type=float, help='change the dropout rate of Dropout layers to this, regardless of the values in .cfg file')
     parser.add_argument('--with_cached_mcdrop', action='store_true', help='Use the cached version of MCDropout sampling. Note this will not use DataParallel for GPU type')
