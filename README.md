@@ -1,5 +1,5 @@
 [![license](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/tjiagoM/stochastic-YOLO/blob/master/LICENSE)
-[![arXiv](https://img.shields.io/badge/arXiv-0000.00000-b31b1b.svg)](https://arxiv.org/abs/0000.00000)
+[![arXiv](https://img.shields.io/badge/arXiv-2009.02967-b31b1b.svg)](https://arxiv.org/abs/2009.02967)
 # Stochastic-YOLO
 *Tiago Azevedo, René de Jong, Partha Maji*
 
@@ -12,6 +12,15 @@ In image classification tasks, the evaluation of models' robustness to increased
 ## Repository preliminaries
 
 This repository was originally forked from https://github.com/ultralytics/yolov3
+
+### Python environment
+
+We include a working dependency file named `environment_yolo_env.yml` describing the exact dependencies used to run this repository. In order to install all the dependencies automatically with Anaconda, one can easily just run the following command in the terminal to create an Anaconda environment:
+
+```bash
+$ conda env create -f environment_yolo_env.yml
+$ conda activate yolo_env
+```
 
 ### External packages
 
