@@ -3,7 +3,7 @@
 # Stochastic-YOLO
 *Tiago Azevedo, René de Jong, Partha Maji*
 
-This repository contains all the code necessary to run and further extend the experiments presented in the following ArXiv preprint: [https://arxiv.org/abs/0000.00000](https://arxiv.org/abs/0000.00000)
+This repository contains all the code necessary to run and further extend the experiments presented in the following ArXiv preprint: [https://arxiv.org/abs/2009.02967](https://arxiv.org/abs/2009.02967)
 
 ## Abstract
 
@@ -15,7 +15,7 @@ This repository was originally forked from https://github.com/ultralytics/yolov3
 
 ### Python environment
 
-We include a working dependency file named `environment_yolo_env.yml` describing the exact dependencies used to run this repository. In order to install all the dependencies automatically with Anaconda, one can easily just run the following command in the terminal to create an Anaconda environment:
+We include a working dependency file named `environment_yolo_env.yml` describing the exact dependencies used to run this repository. In order to install all the dependencies automatically with [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://anaconda.org/), one can easily just run the following command in the terminal to create an Anaconda environment:
 
 ```bash
 $ conda env create -f environment_yolo_env.yml
@@ -24,7 +24,7 @@ $ conda activate yolo_env
 
 ### External packages
 
-For this repo it was decided to not install pycocotools in the python environment for a better (and tracked) flexibility when editing some classes. Folder `cocoapi` is then a fork from the original [repository](https://github.com/cocodataset/cocoapi), installed locally in the form of a git submodule. To import it, it is only necessary to include the folder in the system path whenever needed:
+For this repo it was decided to not install pycocotools in the python environment for a better (and tracked) flexibility when editing some classes. Folder `cocoapi` is then a fork from the original [repository](https://github.com/cocodataset/cocoapi), installed locally in the form of a git submodule (check its README to install cocoapi locally). To import it, it is only necessary to include the folder in the system path whenever needed (e.g. in `test.py`):
 
 ```python
 import sys
@@ -32,6 +32,13 @@ sys.path.append('./cocoapi/PythonAPI/')
 ```
 
 We also forked an [external repository](https://github.com/david2611/pdq_evaluation) for calculation of the PDQ score, but included as submodule in this repo for flexibility. Instructions there: https://github.com/tjiagoM/pdq_evaluation (originally for the Robotic Vision Challenge 1 and adapted for COCO dataset).
+
+Similarly to `cocoapi`, instead of installing it as a python package, one just needs to include the folder in the system path:
+
+```python
+import sys
+sys.path.append('./pdq_evaluation')
+```
 
 ### Repository structure
 
