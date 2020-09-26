@@ -1268,6 +1268,7 @@ def plot_corrupted_results(model_names, label_matches, metric, save_path, params
     fig, axs = plt.subplots(nrows=3, ncols=5, sharex=True, sharey=True, figsize=(15, 10))
 
     gradient_cmap = np.linspace(0, 1, len(model_names))
+    gradient_cmap[-2] = 3 # make it outlier to correct the light yellow
     cmap = matplotlib.cm.get_cmap('Paired')
 
     metric_name = {'mAP': 'mAP (%)', 'PDQ': 'PDQ (%)', 'avg_label': 'Label Quality (%)', 'avg_spatial': 'Spatial Quality (%)'}
@@ -1275,6 +1276,9 @@ def plot_corrupted_results(model_names, label_matches, metric, save_path, params
     for out_i, (model_name, model_label) in enumerate(zip(model_names, label_matches)):
         # this dict_variance will have all the values across severities, so they can be averaged at the end
         dict_variance = {s_ind: [] for s_ind in range(6) }
+
+        # Make it dark grey when it's light yellow
+        colour_i = cmap(gradient_cmap[out_i]) if gradient_cmap[out_i] <= 1 else (0.4, 0.4, 0.4, 1.0)
 
         for i, corruption_num in enumerate(corruptions, 1):
             # Deal with df_ without any image corrupted (df_tmp will be used below, that's why it is inside this for cycle)
@@ -1289,7 +1293,7 @@ def plot_corrupted_results(model_names, label_matches, metric, save_path, params
             df_tmp['indices'] = [0, 1, 2, 3, 4, 5]
 
             # Plot everything
-            axs[i // 5][i % 5].plot(df_tmp['indices'], df_tmp[metric], label=f'{model_label}', marker='x', color=cmap(gradient_cmap[out_i]))
+            axs[i // 5][i % 5].plot(df_tmp['indices'], df_tmp[metric], label=f'{model_label}', marker='x', color=colour_i)
             axs[i // 5][i % 5].set_title(corruption_names[corruption_num].replace('_', ' '))
             axs[i // 5][i % 5].set_xticks(df_tmp['indices'])
 
@@ -1301,7 +1305,7 @@ def plot_corrupted_results(model_names, label_matches, metric, save_path, params
         # Plotting the averaged across all corruptions
         tmp_vals = [dict_variance[s_ind] for s_ind in range(6)]
         # Using last df_tmp just to get the indices
-        axs[0][0].errorbar(df_tmp['indices'], np.mean(tmp_vals, axis=1), yerr=np.std(tmp_vals, axis=1), marker='x', label=f'{model_label}', color=cmap(gradient_cmap[out_i]))
+        axs[0][0].errorbar(df_tmp['indices'], np.mean(tmp_vals, axis=1), yerr=np.std(tmp_vals, axis=1), marker='x', label=f'{model_label}', color=colour_i)
         axs[0][0].set_ylabel(metric_name[metric])
         axs[0][0].set_title('Averaged across corruptions')
 
