@@ -1254,7 +1254,7 @@ corruption_names = ('gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_bl
                     'jpeg_compression', 'speckle_noise', 'gaussian_blur', 'spatter',
                     'saturate')
 
-def plot_corrupted_results(model_names, label_matches, metrics, save_path, params_name = '0_5_0_6'):
+def plot_corrupted_results(model_names, label_matches, metric, save_path, params_name = '0_5_0_6'):
     '''
     Plot results for corrupted datasets. 
 
@@ -1267,44 +1267,48 @@ def plot_corrupted_results(model_names, label_matches, metrics, save_path, param
     corruptions = [x for x in range(15) if x != 4]
     fig, axs = plt.subplots(nrows=3, ncols=5, sharex=True, sharey=True, figsize=(15, 10))
 
-    for metric_i in metrics:
-        for model_name, model_label in zip(model_names, label_matches):
-            # this dict_variance will have all the values across severities, so they can be averaged at the end
-            dict_variance = {s_ind: [] for s_ind in range(6) }
+    gradient_cmap = np.linspace(0, 1, len(model_names))
+    cmap = matplotlib.cm.get_cmap('Paired')
 
-            for i, corruption_num in enumerate(corruptions, 1):
-                # Deal with df_ without any image corrupted (df_tmp will be used below, that's why it is inside this for cycle)
-                df_tmp = pd.read_csv(f'results/metrics_{model_name}_{params_name}.csv', index_col=0)
-                dict_variance[0].append(df_tmp[metric_i].item())
+    metric_name = {'mAP': 'mAP (%)', 'PDQ': 'PDQ (%)', 'avg_label': 'Label Quality (%)', 'avg_spatial': 'Spatial Quality (%)'}
 
-                # Go for all the remaining severities
-                for s_ind in [1, 2, 3, 4, 5]:
-                    tmp = pd.read_csv(f'results/metrics_{model_name}_c{corruption_num}s{s_ind}_{params_name}.csv', index_col=0)
-                    dict_variance[s_ind].append(tmp[metric_i].item())
-                    df_tmp = pd.concat([df_tmp, tmp])
-                df_tmp['indices'] = [0, 1, 2, 3, 4, 5]
-                
-                # Plot everything
-                axs[i // 5][i % 5].plot(df_tmp['indices'], df_tmp[metric_i], label=f'{metric_i} {model_label}', marker='x')
-                axs[i // 5][i % 5].set_title(corruption_names[corruption_num].replace('_', ' '))
-                axs[i // 5][i % 5].set_xticks(df_tmp['indices'])
-                
-                if i % 5 == 0:
-                    axs[i // 5][i % 5].set_ylabel('Metric value')
-                if i // 5 == 2:
-                    axs[i // 5][i % 5].set_xlabel('Severity of corruption')
+    for out_i, (model_name, model_label) in enumerate(zip(model_names, label_matches)):
+        # this dict_variance will have all the values across severities, so they can be averaged at the end
+        dict_variance = {s_ind: [] for s_ind in range(6) }
 
-            # Plotting the averaged across all corruptions
-            tmp_vals = [dict_variance[s_ind] for s_ind in range(6)]
-            # Using last df_tmp just to get the indices
-            axs[0][0].errorbar(df_tmp['indices'], np.mean(tmp_vals, axis=1), yerr=np.std(tmp_vals, axis=1), marker='x', label=f'{metric_i} {model_label}')
-            axs[0][0].set_ylabel('Metric value')
-            axs[0][0].set_title('Averaged across corruptions')
+        for i, corruption_num in enumerate(corruptions, 1):
+            # Deal with df_ without any image corrupted (df_tmp will be used below, that's why it is inside this for cycle)
+            df_tmp = pd.read_csv(f'results/metrics_{model_name}_{params_name}.csv', index_col=0)
+            dict_variance[0].append(df_tmp[metric].item())
+
+            # Go for all the remaining severities
+            for s_ind in [1, 2, 3, 4, 5]:
+                tmp = pd.read_csv(f'results/metrics_{model_name}_c{corruption_num}s{s_ind}_{params_name}.csv', index_col=0)
+                dict_variance[s_ind].append(tmp[metric].item())
+                df_tmp = pd.concat([df_tmp, tmp])
+            df_tmp['indices'] = [0, 1, 2, 3, 4, 5]
+
+            # Plot everything
+            axs[i // 5][i % 5].plot(df_tmp['indices'], df_tmp[metric], label=f'{model_label}', marker='x', color=cmap(gradient_cmap[out_i]))
+            axs[i // 5][i % 5].set_title(corruption_names[corruption_num].replace('_', ' '))
+            axs[i // 5][i % 5].set_xticks(df_tmp['indices'])
+
+            if i % 5 == 0:
+                axs[i // 5][i % 5].set_ylabel(metric_name[metric])
+            if i // 5 == 2:
+                axs[i // 5][i % 5].set_xlabel('Severity of corruption')
+
+        # Plotting the averaged across all corruptions
+        tmp_vals = [dict_variance[s_ind] for s_ind in range(6)]
+        # Using last df_tmp just to get the indices
+        axs[0][0].errorbar(df_tmp['indices'], np.mean(tmp_vals, axis=1), yerr=np.std(tmp_vals, axis=1), marker='x', label=f'{model_label}', color=cmap(gradient_cmap[out_i]))
+        axs[0][0].set_ylabel(metric_name[metric])
+        axs[0][0].set_title('Averaged across corruptions')
 
 
-    plt.legend()
+    plt.legend(prop={'size': 6})
     fig.tight_layout()
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
     plt.close()
 
 def calculate_rPC_metric(metric_i, model_name, params_name):
