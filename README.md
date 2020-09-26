@@ -1,7 +1,7 @@
 [![license](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/tjiagoM/stochastic-YOLO/blob/master/LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-2009.02967-b31b1b.svg)](https://arxiv.org/abs/2009.02967)
 # Stochastic-YOLO
-*Tiago Azevedo, René de Jong, Partha Maji*
+*Tiago Azevedo, René de Jong, Matthew Mattina, Partha Maji*
 
 This repository contains all the code necessary to run and further extend the experiments presented in the following ArXiv preprint: [https://arxiv.org/abs/2009.02967](https://arxiv.org/abs/2009.02967)
 
