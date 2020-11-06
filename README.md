@@ -3,6 +3,9 @@
 # Stochastic-YOLO
 *Tiago Azevedo, René de Jong, Matthew Mattina, Partha Maji*
 
+![Stochastic-YOLO architecture](plots/syolo_arch.png)
+
+
 This repository contains all the code necessary to run and further extend the experiments presented in the following ArXiv preprint: [https://arxiv.org/abs/2009.02967](https://arxiv.org/abs/2009.02967)
 
 ## Abstract

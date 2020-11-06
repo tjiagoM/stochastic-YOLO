@@ -20,6 +20,8 @@
 *.data
 *.json
 
+!plots/syolo_arch.png
+
 *.cfg
 !cfg/yolov3*.cfg
 
